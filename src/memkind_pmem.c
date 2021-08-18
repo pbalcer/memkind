@@ -97,7 +97,9 @@ bool pmem_extent_dalloc(extent_hooks_t *extent_hooks, void *addr, size_t size,
     if (!status) {
         struct memkind *kind = get_kind_by_arena(arena_ind);
         struct memkind_pmem *priv = kind->priv;
+
         assert(priv->current_size >= size);
+
         if (pthread_mutex_lock(&priv->pmem_lock) != 0)
             assert(0 && "failed to acquire mutex");
         priv->current_size -= size;

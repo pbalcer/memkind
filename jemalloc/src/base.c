@@ -20,6 +20,8 @@ const char *metadata_thp_mode_names[] = {
 	"always"
 };
 
+#define BASE_USE_DEFAULT_HOOKS 1
+
 /******************************************************************************/
 
 static inline bool
@@ -37,7 +39,7 @@ base_map(tsdn_t *tsdn, extent_hooks_t *extent_hooks, unsigned ind, size_t size) 
 	/* Use huge page sizes and alignment regardless of opt_metadata_thp. */
 	assert(size == HUGEPAGE_CEILING(size));
 	size_t alignment = HUGEPAGE;
-	if (extent_hooks == &extent_hooks_default) {
+	if (BASE_USE_DEFAULT_HOOKS || extent_hooks == &extent_hooks_default) {
 		addr = extent_alloc_mmap(NULL, size, alignment, &zero, &commit);
 	} else {
 		/* No arena context as we are creating new arenas. */
@@ -64,7 +66,7 @@ base_unmap(tsdn_t *tsdn, extent_hooks_t *extent_hooks, unsigned ind, void *addr,
 	 * may in fact want the end state of all associated virtual memory to be
 	 * in some consistent-but-allocated state.
 	 */
-	if (extent_hooks == &extent_hooks_default) {
+	if (BASE_USE_DEFAULT_HOOKS || extent_hooks == &extent_hooks_default) {
 		if (!extent_dalloc_mmap(addr, size)) {
 			goto label_done;
 		}
