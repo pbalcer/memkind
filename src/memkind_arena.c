@@ -366,10 +366,9 @@ MEMKIND_EXPORT int memkind_arena_create_map(struct memkind *kind,
     unsigned i;
     size_t unsigned_size = sizeof(unsigned int);
     kind->arena_zero = UINT_MAX;
+    unsigned arena_index;
     for (i = 0; i < kind->arena_map_len; i++) {
-        unsigned arena_index;
         // create new arena with consecutive index
-
         if (!metadata_use_hooks) {
             arena_config_t config;
             config.metadata_use_hooks = metadata_use_hooks;
@@ -399,6 +398,15 @@ MEMKIND_EXPORT int memkind_arena_create_map(struct memkind *kind,
             if (err) {
                 goto exit;
             }
+        }
+
+        char cmd[64];
+        const size_t retainGrowLimit = (2 << 20);
+        snprintf(cmd, sizeof(cmd), "arena.%u.retain_grow_limit", arena_index);
+        err = jemk_mallctl(cmd, NULL, NULL, (void *)&retainGrowLimit,
+                           sizeof(retainGrowLimit));
+        if (err) {
+            goto exit;
         }
         // store arena with lowest index (arenas could be created in
         // descending/ascending order)
